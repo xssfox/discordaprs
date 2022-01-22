@@ -11,6 +11,7 @@ import json
 import discord
 import asyncio
 from discord.ext import commands
+import hashlib
 
 import datetime
 
@@ -30,7 +31,7 @@ async def on_ready():
 async def on_message(message):
 
     if message.content.startswith('!aprs'):
-        await message.channel.send(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{str(message.channel.id)} ` for them to appear here")
+        await message.channel.send(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{channel_id_hash(message.channel.id)} ` for them to appear here")
 
 CALLSIGN = os.getenv("CALLSIGN")
 logging.getLogger().setLevel(logging.DEBUG)
@@ -67,6 +68,12 @@ ch.setFormatter(CustomFormatter())
 
 logging.getLogger().addHandler(ch)
 
+def channel_id_hash(id):
+    return hashlib.sha224(str(id).encode("utf-8")).hexdigest()[:8]
+
+def get_channel_id_from_hash(hash):
+    channels = {channel_id_hash(x.id) : x.id for x in client.get_all_channels()}
+    return channels[hash]
 
 def isDup(callsign, message, messageno):
     # expire duplicates
@@ -99,7 +106,10 @@ def parser(x):
                         return
                 #channels = {x.id : {"guild": x.guild, "name": x.name, "_": x} for x in client.get_all_channels()}
                 channel_id, message = message.split(" ",1)
-                channel_id = int(channel_id)
+                if len(channel_id) == 8: # lookup short code
+                    channel_id = get_channel_id_from_hash(channel_id)
+                else:
+                    channel_id = int(channel_id)
                 channel = client.get_channel(channel_id)
                 send_message = asyncio.run_coroutine_threadsafe(
                     channel.send(embed=discord.Embed(
