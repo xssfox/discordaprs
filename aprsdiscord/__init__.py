@@ -28,7 +28,7 @@ async def on_ready():
 async def on_message(message):
 
     if message.content.startswith('!aprs'):
-        await message.channel.send(f"Send APRS messages to `DISCORD` that start with `{str(message.channel.id)} ` for them to appear here")
+        await message.channel.send(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{str(message.channel.id)} ` for them to appear here")
 
 CALLSIGN = os.getenv("CALLSIGN")
 logging.getLogger().setLevel(logging.DEBUG)
@@ -98,7 +98,7 @@ def parser(x):
 
 def sendAck(callsign, msgNo):
     callsign = callsign.ljust(9, ' ')
-    a.send(("DISCORD>APRS,TCPIP*::"+callsign+":ack"+msgNo).encode("ascii"))
+    a.send((f"{os.getenv('SERVER_NAME')}>APRS,TCPIP*::"+callsign+":ack"+msgNo).encode("ascii"))
 
 a = aprs.TCP(CALLSIGN.encode(), str(aprslib.passcode(CALLSIGN)).encode(), aprs_filter=f"g/{os.getenv('SERVER_NAME')}".encode()) # filter position and balloon
 a.start()

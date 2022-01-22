@@ -4,7 +4,7 @@ Discord APRS bot
 Add the discord bot to your server with this [link]( https://discord.com/api/oauth2/authorize?client_id=934322104025907231&permissions=19456&scope=bot).
 
 ## Using
-Send APRS messages to `DISCORD` prefixed with the channel id. You can get the channel ID by doing `!aprs`.
+Send APRS messages to `DISCRD` prefixed with the channel id. You can get the channel ID by doing `!aprs`.
 
 ![Example](docs/example.jpeg)
 
@@ -19,4 +19,4 @@ docker build -t aprsdiscord .
 docker run -e CALLSIGN=YOUR_CALLSIGN -e DISCORD_TOKEN=BOT_TOKEN -e SERVER_NAME=APRS_SERVER_NAME aprsdiscord
 ```
 
-DO NOT USE `DISCORD` as your `SERVER_NAME`!!!
+DO NOT USE `DISCRD` as your `SERVER_NAME`!!!
