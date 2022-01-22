@@ -12,13 +12,15 @@ import discord
 import asyncio
 from discord.ext import commands
 
-
+import datetime
 
 from threading import Thread
 
 client = discord.Client()
 
+MESSAGE_TIME = 4*60*60 # 4 hours in seconds
 
+messages_heard = {}
 
 @client.event
 async def on_ready():
@@ -65,6 +67,21 @@ ch.setFormatter(CustomFormatter())
 logging.getLogger().addHandler(ch)
 
 
+def isDup(callsign, message, messageno):
+    # expire duplicates
+    for k,v in messages_heard.copy().items():
+        if v < datetime.datetime.utcnow() - datetime.timedelta(seconds=MESSAGE_TIME):
+            logging.debug(f"Removing {k} from messages_heard : {v}")
+            messages_heard.pop(k, None)
+
+    if (callsign, message, messageno) in messages_heard:
+        logging.debug(f"Message {(callsign, message, messageno)} already heard at {messages_heard[(callsign, message, messageno)]}")
+        return True
+    else:
+        logging.debug(f"Adding {(callsign, message, messageno)} to messages_heard")
+        messages_heard[(callsign, message, messageno)] = datetime.datetime.utcnow()
+        return False
+
 def parser(x):
     thing = aprslib.parse(bytes(x))
     
@@ -77,6 +94,8 @@ def parser(x):
                     logging.info(f"Sending ack to {thing['from']}")
                     sendAck(thing['from'], thing['msgNo'])
                     logging.info(f"Sent ack to {thing['from']}")
+                    if isDup(thing['from'], message, thing['msgNo']): # remove duplicates
+                        return
                 #channels = {x.id : {"guild": x.guild, "name": x.name, "_": x} for x in client.get_all_channels()}
                 channel_id, message = message.split(" ",1)
                 channel_id = int(channel_id)
