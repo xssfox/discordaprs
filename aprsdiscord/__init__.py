@@ -35,6 +35,7 @@ async def on_message(message):
 CALLSIGN = os.getenv("CALLSIGN")
 logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger("aprslib").setLevel(logging.INFO)
+logging.getLogger("discord").setLevel(logging.INFO)
 
 class CustomFormatter(logging.Formatter):
 
