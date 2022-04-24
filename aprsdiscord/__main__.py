@@ -9,29 +9,31 @@ import datetime
 import pprint
 import json
 import discord
+from discord.commands import Option
 import asyncio
 from discord.ext import commands
 import hashlib
+from .send_message import send_message
+
 
 import datetime
 
 from threading import Thread
 
-client = discord.Client()
+bot = discord.Bot()
 
 MESSAGE_TIME = 4*60*60 # 4 hours in seconds
 
 messages_heard = {}
 
-@client.event
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('We have logged in as {0.user}'.format(bot))
+    print(bot.guilds)
 
-@client.event
+@bot.slash_command(name="aprs", description="APRS help", guild_ids=[688681592318722112])
 async def on_message(message):
-
-    if message.content.startswith('!aprs'):
-        await message.channel.send(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{channel_id_hash(message.channel.id)} ` for them to appear here")
+        return await message.channel.send(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{channel_id_hash(message.channel.id)} ` for them to appear here")
 
 CALLSIGN = os.getenv("CALLSIGN")
 logging.getLogger().setLevel(logging.DEBUG)
@@ -72,7 +74,7 @@ def channel_id_hash(id):
     return hashlib.sha224(str(id).encode("utf-8")).hexdigest()[:8]
 
 def get_channel_id_from_hash(hash):
-    channels = {channel_id_hash(x.id) : x.id for x in client.get_all_channels()}
+    channels = {channel_id_hash(x.id) : x.id for x in bot.get_all_channels()}
     return channels[hash]
 
 def isDup(callsign, message, messageno):
@@ -110,7 +112,7 @@ def parser(x):
                     channel_id = get_channel_id_from_hash(channel_id)
                 else:
                     channel_id = int(channel_id)
-                channel = client.get_channel(channel_id)
+                channel = bot.get_channel(channel_id)
                 send_message = asyncio.run_coroutine_threadsafe(
                     channel.send(embed=discord.Embed(
                         title=f"APRS message from : {thing['from']}",
@@ -130,11 +132,37 @@ def sendAck(callsign, msgNo):
     callsign = callsign.ljust(9, ' ')
     a.send((f"{os.getenv('SERVER_NAME')}>APRS,TCPIP*::"+callsign+":ack"+msgNo).encode("ascii"))
 
+
+@bot.slash_command(name="sendaprs", description="Send APRS message")
+async def sendaprs(ctx,
+                    to_call: Option(str, "Person to send message to + SSID", required = True),
+                    from_call: Option(str, "Person to send message from", required = True),
+                    aprs_passcode: Option(str, "APRS Passcode", required = True),
+                    message: Option(str, "The message", required = True)
+                  ):
+    message = f"[{from_call}:{channel_id_hash(ctx.channel.id)}] {message}"
+    status = send_message(to_call, from_call, aprs_passcode,message)
+    
+    if status == 200:
+        print(dir(ctx.user.avatar))
+        await ctx.respond("Sent!")
+        return await ctx.channel.send(embed=discord.Embed(
+            title=f"APRS sent message to {to_call} from {from_call}",
+            description=message,
+            url=f"https://aprs.fi/?call=a%2F{to_call}",
+            color=0x33cc33,
+        ).set_author(name=ctx.user.name, icon_url=str(ctx.user.avatar))) 
+    elif status == 403:
+        return await ctx.respond("Invalid passcode")
+    else:
+        return await ctx.respond("Error sending")
+
+
 a = aprs.TCP(CALLSIGN.encode(), str(aprslib.passcode(CALLSIGN)).encode(), aprs_filter=f"g/{os.getenv('SERVER_NAME')}".encode()) # filter position and balloon
 a.start()
 
 loop = asyncio.get_event_loop()
-loop.create_task(client.start(os.getenv("DISCORD_TOKEN")))
+loop.create_task(bot.start(os.getenv("DISCORD_TOKEN")))
 Thread(target=loop.run_forever).start()
 
 a.interface.settimeout(None)

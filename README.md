@@ -1,12 +1,15 @@
 Discord APRS bot
 ==
 
-Add the discord bot to your server with this [link]( https://discord.com/api/oauth2/authorize?client_id=934322104025907231&permissions=19456&scope=bot).
+Add the discord bot to your server with this [link]( https://discord.com/api/oauth2/authorize?client_id=934322104025907231&permissions=19456&scope=bot%20applications.commands).
 
-## Using
-Send APRS messages to `DISCRD` prefixed with the channel id. You can get the channel ID by doing `!aprs`.
+## Sending messages to Discord
+Send APRS messages to `DISCRD` prefixed with the channel id. You can get the channel ID by doing `/aprs`.
 
 ![Example](docs/example.jpeg)
+
+## Sending messages to APRS
+Use `/sendaprs [to_call] [from_call] [aprs_passcode] [message]`
 
 ## Some notes of privacy
 APRS is unencrypted, and basically unauthenicated. Keep this in mind. Best practice is to limit the bot to a single channel specific for APRS messages.

@@ -1,5 +1,5 @@
 boto3
 aprs
 aprslib
-discord.py
 nest_asyncio
+requests
