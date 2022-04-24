@@ -140,6 +140,7 @@ async def sendaprs(ctx,
                     aprs_passcode: Option(str, "APRS Passcode", required = True),
                     message: Option(str, "The message", required = True)
                   ):
+    await ctx.defer(ephemeral=True)
     message = f"[{from_call}:{channel_id_hash(ctx.channel.id)}] {message}"
     status = send_message(to_call, from_call, aprs_passcode,message)
     
