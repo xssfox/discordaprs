@@ -33,7 +33,7 @@ async def on_ready():
 
 @bot.slash_command(name="aprs", description="APRS help", guild_ids=[688681592318722112])
 async def on_message(message):
-        return await message.channel.send(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{channel_id_hash(message.channel.id)} ` for them to appear here")
+        return await message.respond(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{channel_id_hash(message.channel.id)} ` for them to appear here\n Use `/sendaprs` to send an APRS message.")
 
 CALLSIGN = os.getenv("CALLSIGN")
 logging.getLogger().setLevel(logging.DEBUG)
@@ -144,8 +144,7 @@ async def sendaprs(ctx,
     status = send_message(to_call, from_call, aprs_passcode,message)
     
     if status == 200:
-        print(dir(ctx.user.avatar))
-        await ctx.respond("Sent!")
+        await ctx.respond("Sent", ephemeral=True)
         return await ctx.channel.send(embed=discord.Embed(
             title=f"APRS sent message to {to_call} from {from_call}",
             description=message,
@@ -153,9 +152,9 @@ async def sendaprs(ctx,
             color=0x33cc33,
         ).set_author(name=ctx.user.name, icon_url=str(ctx.user.avatar))) 
     elif status == 403:
-        return await ctx.respond("Invalid passcode")
+        return await ctx.respond("Invalid passcode", ephemeral=True)
     else:
-        return await ctx.respond("Error sending")
+        return await ctx.respond("Error sending", ephemeral=True)
 
 
 a = aprs.TCP(CALLSIGN.encode(), str(aprslib.passcode(CALLSIGN)).encode(), aprs_filter=f"g/{os.getenv('SERVER_NAME')}".encode()) # filter position and balloon
