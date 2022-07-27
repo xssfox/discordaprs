@@ -16,7 +16,7 @@ import hashlib
 from .send_message import send_message
 
 
-import datetime
+import time
 
 from threading import Thread
 
@@ -31,7 +31,7 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
     print(bot.guilds)
 
-@bot.slash_command(name="aprs", description="APRS help", guild_ids=[688681592318722112])
+@bot.slash_command(name="aprs", description="APRS help")
 async def on_message(message):
         return await message.respond(f"Send APRS messages to `{os.getenv('SERVER_NAME')}` that start with `{channel_id_hash(message.channel.id)} ` for them to appear here\n Use `/sendaprs` to send an APRS message.")
 
@@ -130,6 +130,7 @@ def parser(x):
 
 def sendAck(callsign, msgNo):
     callsign = callsign.ljust(9, ' ')
+    time.sleep(1)
     a.send((f"{os.getenv('SERVER_NAME')}>APRS,TCPIP*::"+callsign+":ack"+msgNo).encode("ascii"))
 
 
